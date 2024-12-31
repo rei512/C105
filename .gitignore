@@ -1,0 +1,8 @@
+*.smv
+
+Debug
+Release
+*.launch
+
+Drivers
+*.gdoc
