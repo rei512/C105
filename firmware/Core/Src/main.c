@@ -55,12 +55,12 @@
 #define FIR_LENGTH 50
 
 #define Wi 1000.0f
-#define KIp (Wi * La)			// La
+#define KIp (Wi * La)           // La
 #define KIi (Wi * Ra / 1000.0f) // Ra
 
 #define Ws 100.0f
 #define KSp (2.0f * J * Ws / Kt) // 2*J/Kt
-#define KSi (J * Ws * Ws / Kt)	 // J/Kt
+#define KSi (J * Ws * Ws / Kt)   // J/Kt
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -124,200 +124,200 @@ static void MX_TIM5_Init(void);
 // 指令値電圧をPWM�?��?��??�?�値�?�変�?�
 int convert_PWM(float voltage)
 {
-	int pwm = PWM_RANGE / 2.0f + PWM_RANGE / 2.0f * voltage * 2.0f / Vdd;
-	if (pwm < 0)
-	{
-		pwm = 0;
-	}
-	else if (pwm > PWM_RANGE)
-	{
-		pwm = PWM_RANGE - 1;
-	}
-	return pwm;
+  int pwm = PWM_RANGE / 2.0f + PWM_RANGE / 2.0f * voltage * 2.0f / Vdd;
+  if (pwm < 0)
+  {
+    pwm = 0;
+  }
+  else if (pwm > PWM_RANGE)
+  {
+    pwm = PWM_RANGE - 1;
+  }
+  return pwm;
 }
 
 // ADC�?�入力を電�?�?�変�?�
 float convert_current(int adc)
 {
-	return ((float)adc * 3.3f / 4096.0f - 1.66f) / 0.092f;
+  return ((float)adc * 3.3f / 4096.0f - 1.66f) / 0.092f;
 }
 
 // 逆パーク変�?�
 void dq_to_ab(float d, float q, float theta, float *a, float *b)
 {
-	*a = d * cosf(theta) - q * sinf(theta);
-	*b = d * sinf(theta) + q * cosf(theta);
+  *a = d * cosf(theta) - q * sinf(theta);
+  *b = d * sinf(theta) + q * cosf(theta);
 }
 
 // uvw→dq変�?�
 void uvw_to_dq(float u, float v, float w, float theta, float *d, float *q)
 {
-	// クラーク変�?�
-	float alpha = u;
-	float beta = (u + 2.0f * v) / sqrtf(3.0f);
+  // クラーク変�?�
+  float alpha = u;
+  float beta = (u + 2.0f * v) / sqrtf(3.0f);
 
-	// パーク変�?�
-	*d = (alpha * cosf(theta) + beta * sinf(theta)) / sqrtf(3.0f / 2.0f);
-	*q = (-alpha * sinf(theta) + beta * cosf(theta)) / sqrtf(3.0f / 2.0f);
+  // パーク変�?�
+  *d = (alpha * cosf(theta) + beta * sinf(theta)) / sqrtf(3.0f / 2.0f);
+  *q = (-alpha * sinf(theta) + beta * cosf(theta)) / sqrtf(3.0f / 2.0f);
 }
 
 // 空間ベクトル変調
 void ab_to_svm(float a, float b, float *u, float *v, float *w)
 {
-	float v1, v2, v3;
-	int VecSector;
+  float v1, v2, v3;
+  int VecSector;
 
-	// �?��?分�?�計算
-	v1 = b;
-	v2 = 0.5f * b + sqrtf(3) / 2.0f * a;
-	v3 = v2 - v1;
+  // �?��?分�?�計算
+  v1 = b;
+  v2 = 0.5f * b + sqrtf(3) / 2.0f * a;
+  v3 = v2 - v1;
 
-	// セクター�?�特定
-	VecSector = 3;
-	VecSector = (v2 >= 0) ? (VecSector - 1) : VecSector;
-	VecSector = (v3 > 0) ? (VecSector - 1) : VecSector;
-	VecSector = (v1 < 0) ? (7 - VecSector) : VecSector;
+  // セクター�?�特定
+  VecSector = 3;
+  VecSector = (v2 >= 0) ? (VecSector - 1) : VecSector;
+  VecSector = (v3 > 0) ? (VecSector - 1) : VecSector;
+  VecSector = (v1 < 0) ? (7 - VecSector) : VecSector;
 
-	// セクター別�?�処�?�
-	switch (VecSector)
-	{
-	case 1:
-	case 4:
-		*u = v2;
-		*v = v1 - v3;
-		*w = -v2;
-		break;
+  // セクター別�?�処�?�
+  switch (VecSector)
+  {
+  case 1:
+  case 4:
+    *u = v2;
+    *v = v1 - v3;
+    *w = -v2;
+    break;
 
-	case 2:
-	case 5:
-		*u = v2 + v3;
-		*v = v1;
-		*w = -v1;
-		break;
+  case 2:
+  case 5:
+    *u = v2 + v3;
+    *v = v1;
+    *w = -v1;
+    break;
 
-	case 3:
-	case 6:
-		*u = v3;
-		*v = -v3;
-		*w = -v1 - v2;
+  case 3:
+  case 6:
+    *u = v3;
+    *v = -v3;
+    *w = -v1 - v2;
 
-	default:
-		break;
-	}
+  default:
+    break;
+  }
 }
 
 // dq→uvw変�?�
 void dq_to_uvw(float d, float q, float theta, float *u, float *v, float *w)
 {
-	// 逆パーク変�?�
-	float alpha = d * cosf(theta) - q * sinf(theta);
-	float beta = d * sinf(theta) + q * cosf(theta);
+  // 逆パーク変�?�
+  float alpha = d * cosf(theta) - q * sinf(theta);
+  float beta = d * sinf(theta) + q * cosf(theta);
 
-	ab_to_svm(alpha, beta, u, v, w);
+  ab_to_svm(alpha, beta, u, v, w);
 }
 
 // 極零相殺
 void pole_zero_cancel(float *vd, float *vq, float id, float iq)
 {
-	*vd -= speed * iq * La;
-	*vq += speed * (id * La + Kt / 7.0f);
+  *vd -= speed * iq * La;
+  *vq += speed * (id * La + Kt / 7.0f);
 }
 
 // PI制御器
 float PI_Controller(float error, float *integral, float Kp, float Ki, float Limit)
 {
-	// 出力�?�計算
-	float output = Kp * error + Ki * (*integral + error);
+  // 出力�?�計算
+  float output = Kp * error + Ki * (*integral + error);
 
-	// アン�?ワインドアップ
-	if (output > Limit)
-		output = Limit;
-	else if (output < -Limit)
-		output = -Limit;
-	else
-		*integral += error;
+  // アン�?ワインドアップ
+  if (output > Limit)
+    output = Limit;
+  else if (output < -Limit)
+    output = -Limit;
+  else
+    *integral += error;
 
-	return output;
+  return output;
 }
 
 // タイマ割り込�?��?�コール�?ック関数
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if (htim == &htim1) // PWM割り込�?� 21 kHz
-	{
-		// 電気角�?置�?�計算
-		theta_e = TIM5->CNT / (float)TIM_before * 2.0f * PI + 1.25f;
-		if (theta_e < 0.0f)
-		{
-			theta_e += 2.0f * PI;
-		}
-		else if (theta_e > 2.0f * PI)
-		{
-			theta_e -= 2.0f * PI;
-		}
+  if (htim == &htim1) // PWM割り込�?� 21 kHz
+  {
+    // 電気角�?置�?�計算
+    theta_e = TIM5->CNT / (float)TIM_before * 2.0f * PI + 1.25f;
+    if (theta_e < 0.0f)
+    {
+      theta_e += 2.0f * PI;
+    }
+    else if (theta_e > 2.0f * PI)
+    {
+      theta_e -= 2.0f * PI;
+    }
 
-		// ADC�?�ら電�?�?�得
-		iu = convert_current(adc_dma[0]);
-		iv = convert_current(adc_dma[1]);
-		iw = convert_current(adc_dma[2]);
+    // ADC�?�ら電�?�?�得
+    iu = convert_current(adc_dma[0]);
+    iv = convert_current(adc_dma[1]);
+    iw = convert_current(adc_dma[2]);
 
-		// dq軸電�?�?�計算
-		uvw_to_dq(iu, iv, iw, theta_e, &id_raw, &iq_raw);
+    // dq軸電�?�?�計算
+    uvw_to_dq(iu, iv, iw, theta_e, &id_raw, &iq_raw);
 
-		// 出力電圧�?�変更
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, convert_PWM(U));
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, convert_PWM(V));
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, convert_PWM(W));
+    // 出力電圧�?�変更
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, convert_PWM(U));
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, convert_PWM(V));
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, convert_PWM(W));
 
-		// 次�?�ADCスタート
-		HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_dma, 3);
-	}
-	else if (htim == &htim2) // 制御部 1 kHz
-	{
-		// 計算�?��?�dq軸電�?を�?�得
-		id = id_raw;
-		iq = iq_raw;
+    // 次�?�ADCスタート
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_dma, 3);
+  }
+  else if (htim == &htim2) // 制御部 1 kHz
+  {
+    // 計算�?��?�dq軸電�?を�?�得
+    id = id_raw;
+    iq = iq_raw;
 
-		// PI制御器�?�よるq軸電�?指令値�?�決定
-		float iq_ref = PI_Controller(SPEED - speed, &speed_integ, KSp, KSi, 0.5f);
+    // PI制御器�?�よるq軸電�?指令値�?�決定
+    float iq_ref = PI_Controller(SPEED - speed, &speed_integ, KSp, KSi, 0.5f);
 
-		// PI制御器�?�よるdq軸電圧指令値�?�決定
-		vd = PI_Controller(I_d - id, &id_integ, KIp, KIi, 2.0f);
-		vq = PI_Controller(I_q - iq, &iq_integ, KIp, KIi, 2.0f);
+    // PI制御器�?�よるdq軸電圧指令値�?�決定
+    vd = PI_Controller(I_d - id, &id_integ, KIp, KIi, 2.0f);
+    vq = PI_Controller(I_q - iq, &iq_integ, KIp, KIi, 2.0f);
 
-		// �?�干渉制御
-		pole_zero_cancel(&vd, &vq, id, iq);
+    // �?�干渉制御
+    pole_zero_cancel(&vd, &vq, id, iq);
 
-		// イン�?ータ�?�出力�?�る電圧指令値�?�計算
-		dq_to_uvw(vd, vq, theta_e, &U, &V, &W);
+    // イン�?ータ�?�出力�?�る電圧指令値�?�計算
+    dq_to_uvw(vd, vq, theta_e, &U, &V, &W);
 
-		// 速度�?�計算
-		speed = 1.0f / (TIM_before / 84e6f) * 2.0f * PI / 7.0f;
+    // 速度�?�計算
+    speed = 1.0f / (TIM_before / 84e6f) * 2.0f * PI / 7.0f;
 
-		time++; // ms
-	}
+    time++; // ms
+  }
 }
 
 // 外部割り込�?�(EXTI)�?�コール�?ック関数
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	// �?回�?�割り込�?��?�ら�?�時間を�?�得
-	TIM_before = TIM5->CNT;
-	// タイマー�?�カウントをリセット
-	TIM5->CNT = 0;
+  // �?回�?�割り込�?��?�ら�?�時間を�?�得
+  TIM_before = TIM5->CNT;
+  // タイマー�?�カウントをリセット
+  TIM5->CNT = 0;
 }
 
 int _write(int file, char *ptr, int len)
 {
-	HAL_UART_Transmit(&huart1, (uint8_t *)ptr, len, 10);
-	return len;
+  HAL_UART_Transmit(&huart1, (uint8_t *)ptr, len, 10);
+  return len;
 }
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -349,103 +349,103 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
-	setbuf(stdout, NULL);
+  setbuf(stdout, NULL);
 
-	HAL_TIM_Base_Start_IT(&htim1);
-	HAL_TIM_Base_Start_IT(&htim5);
+  HAL_TIM_Base_Start_IT(&htim1);
+  HAL_TIM_Base_Start_IT(&htim5);
 
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-	HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 
-	HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_dma, 5);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)adc_dma, 5);
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 
-	// printf("%d\n", HAL_RCC_GetSysClockFreq());
-	printf("Time[ms]\tV_d[V]\tV_q[V]\tI_d[A]\tI_q[A]\tSpeed[rad/s]\n");
+  // printf("%d\n", HAL_RCC_GetSysClockFreq());
+  printf("Time[ms]\tV_d[V]\tV_q[V]\tI_d[A]\tI_q[A]\tSpeed[rad/s]\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-	// �?期�?置決定�?��?��?�?�2周�?��?�る
-	dq_to_uvw(0.0f, 2.0f, 0.0f, &U, &V, &W);
-	HAL_Delay(50);
-	dq_to_uvw(0.0f, 2.0f, 2.0f / 3.0f * PI, &U, &V, &W);
-	HAL_Delay(50);
-	dq_to_uvw(0.0f, 2.0f, 4.0f / 3.0f * PI, &U, &V, &W);
-	HAL_Delay(50);
-	dq_to_uvw(0.0f, 2.0f, 0.0f, &U, &V, &W);
-	HAL_Delay(50);
-	dq_to_uvw(0.0f, 2.0f, 2.0f / 3.0f * PI, &U, &V, &W);
-	HAL_Delay(50);
-	dq_to_uvw(0.0f, 2.0f, 4.0f / 3.0f * PI, &U, &V, &W);
-	HAL_Delay(50);
-	dq_to_uvw(0.0f, 2.0f, 0.0f, &U, &V, &W);
-	HAL_Delay(50);
-	
-	// 制御部スタート
-	HAL_TIM_Base_Start_IT(&htim2);
+  // �?期�?置決定�?��?��?�?�2周�?��?�る
+  dq_to_uvw(0.0f, 2.0f, 0.0f, &U, &V, &W);
+  HAL_Delay(50);
+  dq_to_uvw(0.0f, 2.0f, 2.0f / 3.0f * PI, &U, &V, &W);
+  HAL_Delay(50);
+  dq_to_uvw(0.0f, 2.0f, 4.0f / 3.0f * PI, &U, &V, &W);
+  HAL_Delay(50);
+  dq_to_uvw(0.0f, 2.0f, 0.0f, &U, &V, &W);
+  HAL_Delay(50);
+  dq_to_uvw(0.0f, 2.0f, 2.0f / 3.0f * PI, &U, &V, &W);
+  HAL_Delay(50);
+  dq_to_uvw(0.0f, 2.0f, 4.0f / 3.0f * PI, &U, &V, &W);
+  HAL_Delay(50);
+  dq_to_uvw(0.0f, 2.0f, 0.0f, &U, &V, &W);
+  HAL_Delay(50);
 
-	while (1)
-	{
-		int times[2000];
-		float data[5][2000];
-		for (int i = 0; i < 2000; i++)
-		{
-			/* code */
+  // 制御部スタート
+  HAL_TIM_Base_Start_IT(&htim2);
 
-			times[i] = time;
-			data[0][i] = vd;
-			data[1][i] = vq;
-			data[2][i] = id_raw;
-			data[3][i] = iq_raw;
-			data[4][i] = speed;
-			HAL_Delay(1);
-		}
+  while (1)
+  {
+    int times[2000];
+    float data[5][2000];
+    for (int i = 0; i < 2000; i++)
+    {
+      /* code */
 
-		// float speed = 1.0f / (TIM_before / 84E6f) * 2.0f * PI / 7.0f;
-		// printf("%d\t%f\t%f\t%f\n", time, id, iq, speed);
-		//  printf("% f, % f, %d, %d, %d, %d, %d\n", id, iq, adc_dma[0], adc_dma[1], adc_dma[2], adc_dma[3], adc_dma[4]);
-		//  HAL_Delay(10);
-		for (int i = 0; i < 2000; i++)
-		{
-			/* code */
-			printf("%d\t%f\t%f\t%f\t%f\t%f\n", times[i], data[0][i], data[1][i], data[2][i], data[3][i], data[4][i]);
-		}
-		while (1)
-		{
-			/* code */
-		}
+      times[i] = time;
+      data[0][i] = vd;
+      data[1][i] = vq;
+      data[2][i] = id_raw;
+      data[3][i] = iq_raw;
+      data[4][i] = speed;
+      HAL_Delay(1);
+    }
+
+    // float speed = 1.0f / (TIM_before / 84E6f) * 2.0f * PI / 7.0f;
+    // printf("%d\t%f\t%f\t%f\n", time, id, iq, speed);
+    //  printf("% f, % f, %d, %d, %d, %d, %d\n", id, iq, adc_dma[0], adc_dma[1], adc_dma[2], adc_dma[3], adc_dma[4]);
+    //  HAL_Delay(10);
+    for (int i = 0; i < 2000; i++)
+    {
+      /* code */
+      printf("%d\t%f\t%f\t%f\t%f\t%f\n", times[i], data[0][i], data[1][i], data[2][i], data[3][i], data[4][i]);
+    }
+    while (1)
+    {
+      /* code */
+    }
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	}
+  }
   /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -461,9 +461,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -476,10 +475,10 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief ADC1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief ADC1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_ADC1_Init(void)
 {
 
@@ -494,7 +493,7 @@ static void MX_ADC1_Init(void)
   /* USER CODE END ADC1_Init 1 */
 
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
-  */
+   */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
@@ -513,7 +512,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
+   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
@@ -523,7 +522,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
+   */
   sConfig.Channel = ADC_CHANNEL_1;
   sConfig.Rank = 2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -532,7 +531,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
+   */
   sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = 3;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
@@ -542,14 +541,13 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
-
 }
 
 /**
-  * @brief TIM1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM1_Init(void)
 {
 
@@ -565,9 +563,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 4-1;
+  htim1.Init.Prescaler = 4 - 1;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 1000-1;
+  htim1.Init.Period = 1000 - 1;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -616,14 +614,13 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
   HAL_TIM_MspPostInit(&htim1);
-
 }
 
 /**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM2 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM2_Init(void)
 {
 
@@ -638,9 +635,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 84-1;
+  htim2.Init.Prescaler = 84 - 1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 1000-1;
+  htim2.Init.Period = 1000 - 1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
@@ -664,14 +661,13 @@ static void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
-
 }
 
 /**
-  * @brief TIM5 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM5 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM5_Init(void)
 {
 
@@ -712,14 +708,13 @@ static void MX_TIM5_Init(void)
   /* USER CODE BEGIN TIM5_Init 2 */
 
   /* USER CODE END TIM5_Init 2 */
-
 }
 
 /**
-  * @brief USART1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief USART1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_USART1_UART_Init(void)
 {
 
@@ -745,12 +740,11 @@ static void MX_USART1_UART_Init(void)
   /* USER CODE BEGIN USART1_Init 2 */
 
   /* USER CODE END USART1_Init 2 */
-
 }
 
 /**
-  * Enable DMA controller clock
-  */
+ * Enable DMA controller clock
+ */
 static void MX_DMA_Init(void)
 {
 
@@ -764,19 +758,18 @@ static void MX_DMA_Init(void)
   /* DMA2_Stream7_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
-
 }
 
 /**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -813,8 +806,8 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -822,33 +815,33 @@ static void MX_GPIO_Init(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-	/* User can add his own implementation to report the HAL error return state */
-	__disable_irq();
-	while (1)
-	{
-	}
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-	/* User can add his own implementation to report the file name and line number,
-		 ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
